@@ -16,11 +16,35 @@ Qwen3.5-0.8B (FP16) を Unsloth + QLoRA で日本語強化学習する Google Co
 | 手法 | QLoRA (4bit) | 元重みを凍結し忘却を抑制 |
 | LoRA Rank / Alpha | 16 / 32 | 中程度の表現力で過学習防止 |
 | ターゲット層 | q/k/v/o/gate/up/down_proj | attn + MLP を広くカバー |
+| Vision 層 | 凍結 (`finetune_vision_layers=False`) | テキストのみ学習し VRAM 節約 |
 | LR | 2e-4 (cosine) | LoRA 向きの中程度の学習率 |
 | Epochs | 3 | 短めに設定して過学習抑制 |
 | Max Seq | 2048 | oasst1 の長さ分布に合わせる |
 | Optimizer | paged_adamw_8bit | VRAM 節約 + 安定収束 |
 | データ | oasst1-21k-ja → 8k 高品質抽出 | 多様性 + 品質両立 |
+
+## Qwen3.5 特有の注意点
+
+- Qwen3.5-0.8B はマルチモーダル (Vision) モデルとして公開されていますが、Unsloth 公式サポート済みです。
+- テキストのみ学習するため `FastVisionModel` を使用し、`finetune_vision_layers=False` で視覚エンコーダを凍結します。
+- Qwen3.5 は `<think>...</think>` 推論ブロックを持つため、推論能力を保ちたい場合はデータに推論スタイルを 25% 以上混ぜることを推奨します (Unsloth 公式)。
+- 公式推奨は bf16 LoRA (3GB VRAM) ですが、0.8B は dense モデルなので QLoRA (4bit) も動作します。
+
+## データセットスキーマ (実確認済)
+
+`llm-jp/oasst1-21k-ja` は ShareGPT 形式です:
+
+```json
+{
+  "conversations": [
+    {"from": "human", "value": "..."},
+    {"from": "gpt",   "value": "..."}
+  ]
+}
+```
+
+- 列は `conversations` のみ (rank / message_id / parent_id は存在しない)
+- 行数は 21,200 件
 
 ## ファイル構成
 
@@ -34,13 +58,10 @@ Qwen3.5-0.8B (FP16) を Unsloth + QLoRA で日本語強化学習する Google Co
 
 ## 注意事項
 
-- `Qwen/Qwen3.5-0.8B` は仕様書に基づく設定です。公開時に同名モデルが存在しない場合は、
-  ノートブック冒頭の `MODEL_NAME` を `Qwen/Qwen3-0.6B` や `Qwen/Qwen2.5-1.5B` 等に差し替えてください。
-- Colab 無料枠の T4 (16GB) を想定しています。OOM が発生する場合は
-  `BATCH_SIZE=1` または `MAX_SEQ_LEN=1024` に調整してください。
+- Colab 無料枠の T4 (16GB) を想定しています。OOM が発生する場合は `BATCH_SIZE=1` または `MAX_SEQ_LEN=1024` に調整してください。
 - 学習後のアダプタを再配布する場合は、データ/モデルのライセンスを各自確認してください。
 
 ## ライセンス
 
 ノートブック・スクリプト: MIT
-学習済みモデル: 原モデル (Qwen) およびデータセット (oasst1/llm-jp) のライセンスに従ってください。
+学習済みモデル: 原モデル (Qwen3.5) およびデータセット (oasst1/llm-jp) のライセンスに従ってください。
