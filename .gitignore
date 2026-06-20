@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+.pytest_cache/
+
+# Colab / Jupyter
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+# 学習成果物 (重いのでリポジトリには含めない)
+outputs/
+lora_adapter/
+merged_model_fp16/
+*.safetensors
+*.bin
+*.gguf
+*.pt
+*.pth
+
+# データキャッシュ
+.cache/
+datasets_cache/
+hf_cache/
+
+# wandb / ログ
+wandb/
+runs/
+*.log
+
+# OS / エディタ
+.DS_Store
+.vscode/
+.idea/
+*.swp
